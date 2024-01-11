@@ -1,0 +1,6 @@
+services:
+  digitalia_muni_query_modifications.event_subscriber:
+    class: Drupal\digitalia_muni_query_modifications\EventSubscriber\SolrQueryAlterEventSubscriber
+    arguments: ['@messenger']
+    tags:
+      - { name: event_subscriber }
