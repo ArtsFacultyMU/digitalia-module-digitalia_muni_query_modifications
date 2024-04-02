@@ -35,25 +35,31 @@ class SolrQueryAlterEventSubscriber implements EventSubscriberInterface {
     $query = $event->getQuery();
     $key = $query->getKeys();
 
+    \Drupal::logger('query modifications')->debug("key: " . print_r($key, TRUE));
+
+    if (!is_null($key)) {
     // If key is enclosed in quotes, replace partial search fulltext field with exact search fulltext field (fulltext edge with fulltext).
-    if (strlen($key) >= 2 && ($key[0] == '"' && $key[strlen($key) - 1] == '"')) {
+      if (sizeof($key) >= 2 && ($key[0] == '"' && $key[sizeof($key) - 1] == '"')) {
 
-      $fulltext_fields = $query->getFulltextFields();
-      $altered_fields = [];
-      $replacements = [];
+        $fulltext_fields = $query->getFulltextFields();
+        $altered_fields = [];
+        $replacements = [];
 
-      //$replacements['title_fulltext'] = 'title';
-      $replacements['rendered_item_metadata'] = 'rendered_item_metadata_exact';
-      $replacements['rendered_item_all'] = 'rendered_item_all_exact';
+        \Drupal::logger('query modifications')->debug("fulltext_fields: " . print_r($fulltext_fields, TRUE));
 
-      foreach ($fulltext_fields as $field) {
-        if (array_key_exists($field, $replacements)) {
-          $field = $replacements[$field];
+        //$replacements['title_fulltext'] = 'title';
+        $replacements['rendered_item_metadata'] = 'rendered_item_metadata_exact';
+        $replacements['rendered_item_all'] = 'rendered_item_all_exact';
+
+        foreach ($fulltext_fields as $field) {
+          if (array_key_exists($field, $replacements)) {
+            $field = $replacements[$field];
+          }
+          $altered_fields[] = $field;
         }
-        $altered_fields[] = $field;
-      }
 
-      $event->getQuery()->setFulltextFields($altered_fields);
+        $event->getQuery()->setFulltextFields($altered_fields);
+      }
     }
   }
 }
