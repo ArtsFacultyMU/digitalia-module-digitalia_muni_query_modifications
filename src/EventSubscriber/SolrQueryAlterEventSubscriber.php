@@ -35,12 +35,19 @@ class SolrQueryAlterEventSubscriber implements EventSubscriberInterface {
     $query = $event->getQuery();
     $key = $query->getKeys();
 
-    \Drupal::logger('query modifications')->debug("key: " . print_r($key, TRUE));
+    \Drupal::logger('query modifications')->debug("key: " . print_r($key, true));
 
     if (!is_null($key)) {
+      $replace = false;
     // If key is enclosed in quotes, replace partial search fulltext field with exact search fulltext field (fulltext edge with fulltext).
-      if (sizeof($key) >= 2 && ($key[0] == '"' && $key[sizeof($key) - 1] == '"')) {
-
+      if (is_array($key)) {
+        $replace = sizeof($key) >= 2 && $key[0] == '"' && $key[sizeof($key) - 1] == '"';
+      }
+      if (is_string($key)) {
+        $replace = strlen($key) > 2 && substr($key, 0, 1) === '"' && substr($key, -1) === '"';
+      }
+    
+      if ($replace) {
         $fulltext_fields = $query->getFulltextFields();
         $altered_fields = [];
         $replacements = [];
